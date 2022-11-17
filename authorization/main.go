@@ -15,7 +15,9 @@ func main() {
 	)
 
 	// Register handler
-	pb.RegisterAuthorizationHandler(srv.Server(), handler.New())
+	if err := pb.RegisterAuthorizationHandler(srv.Server(), handler.New()); err != nil {
+		logger.Fatal(err)
+	}
 
 	// Run service
 	if err := srv.Run(); err != nil {

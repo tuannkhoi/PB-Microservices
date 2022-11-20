@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"strings"
 
 	log "github.com/micro/micro/v3/service/logger"
 
@@ -53,4 +54,23 @@ func (h *AuthorizationHandler) PingPong(_ context.Context, stream authorization.
 			return err
 		}
 	}
+}
+
+func (h *AuthorizationHandler) Health(_ context.Context, req *authorization.HealthRequest, rsp *authorization.HealthResponse) error {
+	rsp.CanReachMicroservice = true
+	rsp.AccessTokenIsValid = validateAccessToken(req.GetAccessToken())
+
+	return nil
+}
+
+/*
+validateAccessToken check if the supplied token is valid & not outdated
+
+at the moment, it only checks whether the given token follow the structure of a JWT `${Header}.${Payload}.${Signature}`
+
+TODO: implement proper validation as below
+https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html
+*/
+func validateAccessToken(accessToken string) bool {
+	return len(strings.Split(accessToken, ".")) == 3
 }

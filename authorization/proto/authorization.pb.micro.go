@@ -45,6 +45,7 @@ type AuthorizationService interface {
 	Call(ctx context.Context, in *Request, opts ...client.CallOption) (*Response, error)
 	Stream(ctx context.Context, in *StreamingRequest, opts ...client.CallOption) (Authorization_StreamService, error)
 	PingPong(ctx context.Context, opts ...client.CallOption) (Authorization_PingPongService, error)
+	Health(ctx context.Context, in *HealthRequest, opts ...client.CallOption) (*HealthResponse, error)
 }
 
 type authorizationService struct {
@@ -169,12 +170,23 @@ func (x *authorizationServicePingPong) Recv() (*Pong, error) {
 	return m, nil
 }
 
+func (c *authorizationService) Health(ctx context.Context, in *HealthRequest, opts ...client.CallOption) (*HealthResponse, error) {
+	req := c.c.NewRequest(c.name, "Authorization.Health", in)
+	out := new(HealthResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Authorization service
 
 type AuthorizationHandler interface {
 	Call(context.Context, *Request, *Response) error
 	Stream(context.Context, *StreamingRequest, Authorization_StreamStream) error
 	PingPong(context.Context, Authorization_PingPongStream) error
+	Health(context.Context, *HealthRequest, *HealthResponse) error
 }
 
 func RegisterAuthorizationHandler(s server.Server, hdlr AuthorizationHandler, opts ...server.HandlerOption) error {
@@ -182,6 +194,7 @@ func RegisterAuthorizationHandler(s server.Server, hdlr AuthorizationHandler, op
 		Call(ctx context.Context, in *Request, out *Response) error
 		Stream(ctx context.Context, stream server.Stream) error
 		PingPong(ctx context.Context, stream server.Stream) error
+		Health(ctx context.Context, in *HealthRequest, out *HealthResponse) error
 	}
 	type Authorization struct {
 		authorization
@@ -281,4 +294,8 @@ func (x *authorizationPingPongStream) Recv() (*Ping, error) {
 		return nil, err
 	}
 	return m, nil
+}
+
+func (h *authorizationHandler) Health(ctx context.Context, in *HealthRequest, out *HealthResponse) error {
+	return h.AuthorizationHandler.Health(ctx, in, out)
 }

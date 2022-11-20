@@ -8,6 +8,7 @@ service Authorization {
 	rpc Call(Request) returns (Response) {}
 	rpc Stream(StreamingRequest) returns (stream StreamingResponse) {}
 	rpc PingPong(stream Ping) returns (stream Pong) {}
+	rpc Health(HealthRequest) returns (HealthResponse) {}
 }
 
 message Message {
@@ -36,4 +37,13 @@ message Ping {
 
 message Pong {
 	int64 stroke = 1;
+}
+
+message HealthRequest {
+	string accessToken = 1;
+}
+
+message HealthResponse {
+	bool canReachMicroservice = 1;
+	bool accessTokenIsValid = 2;
 }
